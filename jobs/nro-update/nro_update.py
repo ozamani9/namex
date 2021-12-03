@@ -7,6 +7,7 @@ from sqlalchemy import text
 from flask import Flask, g, current_app
 
 from namex.utils.logging import setup_logging
+from namex.constants import RequestAction, ExpiryDays
 from namex.models import Request, State, User, Event
 from namex.services import EventRecorder
 
@@ -85,7 +86,10 @@ try:
         current_app.logger.debug('processing: {}'.format(r.nrNum))
 
         try:
-
+            if r.request_action_cd in [RequestAction.REH.value, RequestAction.REN.value]:
+                expires_days = ExpiryDays.NAME_REQUEST_REH_REN_LIFESPAN_DAYS
+            else:
+                expires_days = ExpiryDays.NAME_REQUEST_LIFESPAN_DAYS
             nro_data_pump_update(r, ora_cursor, expires_days)
             db.session.add(r)
             EventRecorder.record(user, Event.NRO_UPDATE, r, r.json(), save_to_session=True)

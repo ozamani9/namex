@@ -3,7 +3,7 @@ from pytz import timezone
 
 from namex.utils.logging import setup_logging
 
-from namex.constants import NameState
+from namex.constants import NameState, RequestAction, ExpiryDays
 
 from namex.models import Request, Name, State, Applicant
 
@@ -198,11 +198,14 @@ class NameRequestService(AbstractNameRequestMixin):
         try:
             if self.new_state_code == State.COND_RESERVE:
                 name_request.consentFlag = 'Y'
-
+            if self.request_action_cd in [RequestAction.REH.value, RequestAction.REN.value]:
+                expires_days = ExpiryDays.NAME_REQUEST_REH_REN_LIFESPAN_DAYS.value
+            else:
+                expires_days = ExpiryDays.NAME_REQUEST_LIFESPAN_DAYS.value
             if self.new_state_code in [State.RESERVED, State.COND_RESERVE]:
                 name_request.expirationDate = self.create_expiry_date(
                     start=name_request.submittedDate,
-                    expires_in_days=56
+                    expires_in_days=expires_days
                 )
         except Exception as err:
             raise MapRequestDataError(err)
