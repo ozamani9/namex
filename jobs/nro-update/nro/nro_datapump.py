@@ -10,11 +10,12 @@ from namex.services.nro.utils import nro_examiner_name
 
 def nro_data_pump_update(nr, ora_cursor, expires_days=56):
     nr_service = NameRequestService()
+    current_app.logger.debug('NRO UPDATE - 6 - processing expiry_days:',expires_days)
     expiry_date = nr_service.create_expiry_date(
         start=nr.lastUpdate,
         expires_in_days=expires_days
     )
-
+    current_app.logger.debug('NRO UPDATE - 20 - processing expiry_date:',expiry_date)
     current_app.logger.debug(f'Setting expiry date to: { expiry_date }')
     # init dict for examiner comment data, populated below in loop through names
     examiner_comment = {
