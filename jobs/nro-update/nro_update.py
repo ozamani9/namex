@@ -28,9 +28,9 @@ def get_ops_params():
     except:
         max_rows = 1000
     try:
-        expires_days = int(current_app.config.get('EXPIRES_DAYS', 60))
+        expires_days = int(current_app.config.get('EXPIRES_DAYS', 56))
     except:
-        expires_days=60
+        expires_days=56
 
 
     return delay, max_rows, expires_days
@@ -87,7 +87,9 @@ try:
 
         try:
             nr_service = NameRequestService()
+            current_app.logger.debug(f'Name Request processing Action_type_cd: { r.request_action_cd }')
             expiry_days = int(nr_service.get_expiry_days(r))
+            current_app.logger.debug(f'Set the number of days for expiry: { expiry_days }')
             nro_data_pump_update(r, ora_cursor, expiry_days)
             db.session.add(r)
             EventRecorder.record(user, Event.NRO_UPDATE, r, r.json(), save_to_session=True)
