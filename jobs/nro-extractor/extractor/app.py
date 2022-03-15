@@ -3,6 +3,7 @@
 The extractor ships changes from the NamesDB to the NameX services.
 """
 from flask import Flask, g, current_app
+from pytz import timezone
 
 from config import Config  # pylint: disable=C0411
 
@@ -13,9 +14,7 @@ from namex.services import EventRecorder, queue
 from namex.services.nro import NROServices
 from namex.services.nro.request_utils import get_nr_header, get_nr_submitter
 from namex.services.nro.utils import ora_row_to_dict
-
 from extractor.utils.logging import setup_logging
-
 
 setup_logging()
 
@@ -37,10 +36,11 @@ def create_app(config=Config):
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):
-        ''' Enable Flask to automatically remove database sessions at the
-         end of the request or when the application shuts down.
-         Ref: http://flask.pocoo.org/docs/patterns/sqlalchemy/
-        '''
+        """ Enable Flask to automatically remove database sessions at the
+        
+        end of the request or when the application shuts down.
+        Ref: http://flask.pocoo.org/docs/patterns/sqlalchemy/
+        """
         if hasattr(g, 'db_nro_session'):
             g.db_nro_session.close()
 
@@ -95,6 +95,21 @@ def update_feeder_row(ora_con, row_id, status, send_count, error_message):
 
     return False
 
+def correct_expiration_date(ora_expiration_dt):
+    """Correct an expiry date set to 11:59pm Pacific time."""
+
+    if ora_expiration_dt is not None:
+        pacific_tz = timezone('US/Pacific')
+        expiry_hour = 23
+        expiry_min = 59
+        # make it localized back to Pacific time
+        expiry_date_pst_localized = pacific_tz.localize(ora_expiration_dt)
+        # set the time to 11:59pm in Pacific time
+        expiry_date_pst_with_adjusted_time = expiry_date_pst_localized.replace(hour=expiry_hour, minute=expiry_min, second=0, microsecond=0)
+    else:
+        expiry_date_pst_with_adjusted_time = None
+
+    return expiry_date_pst_with_adjusted_time
 
 def job(app, namex_db, nro_connection, user, max_rows=100):
     """Process the NRs that have been updated in the NamesDB.
@@ -127,14 +142,18 @@ def job(app, namex_db, nro_connection, user, max_rows=100):
             row = ora_row_to_dict(col_names, r)
 
             nr_num = row['nr_num']
+            nr_expiration = row['expiration_date']
             nr = Request.find_by_nr(nr_num)
+            nr.expiration_date = correct_expiration_date(nr_expiration)
             action = row['action']
 
-            current_app.logger.debug('processing: {}, NameX state: {}, action: {}'
+            current_app.logger.debug('processing: {}, NameX state: {}, action: {}, oracle_expiration {}, namex_expiration {}'
                                      .format(
                 nr_num,
                 None if (not nr) else nr.stateCd,
-                action
+                action,
+                nr_expiration,
+                nr.expiration_date
             ))
 
             # NO CHANGES ALLOWED
@@ -160,7 +179,7 @@ def job(app, namex_db, nro_connection, user, max_rows=100):
                 continue
 
             # ignore existing NRs not in a completed state or draft, or in a completed state and not furnished
-            if nr and (nr.stateCd not in State.COMPLETED_STATE + [State.DRAFT] or (nr.stateCd in State.COMPLETED_STATE and nr.furnished == 'N')):
+            if nr and (nr.stateCd not in State.COMPLETED_STATE + [State.DRAFT] or (nr.stateCd in State.COMPLETED_STATE and nr.furnished == 'N')):   # pylint: disable=R1724
                 success = update_feeder_row(
                     ora_con,
                     row_id=row['id'],
@@ -171,7 +190,7 @@ def job(app, namex_db, nro_connection, user, max_rows=100):
                 ora_con.commit()
                 continue
             # for any NRs in a completed state or new NRs not existing in NameX
-            else:  # pylint: disable=R1724: Unnecessary "else"
+            else:
                 try:
                     # get submitter
                     ora_cursor = ora_con.cursor()
