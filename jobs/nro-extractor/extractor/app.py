@@ -142,11 +142,15 @@ def job(app, namex_db, nro_connection, user, max_rows=100):
             row = ora_row_to_dict(col_names, r)
             current_app.logger.debug('display row : {}'.format(row))
             nr_num = row['nr_num']
+            current_app.logger.debug('display nr_num : {}'.format(nr_num))
             nr_expiration = row['expiration_date']
+            current_app.logger.debug('display nr_expiration : {}'.format(nr_expiration))
             nr = Request.find_by_nr(nr_num)
+            current_app.logger.debug('display nr : {}'.format(nr))
             nr.expiration_date = correct_expiration_date(nr_expiration)
+            current_app.logger.debug('display nr.expiration_date : {}'.format(nr.expiration_date))
             action = row['action']
-
+            current_app.logger.debug('display action : {}'.format(action))
             current_app.logger.debug('processing: {}, NameX state: {}, action: {}, oracle_expiration {}, namex_expiration {}'
                                      .format(
                 nr_num,
