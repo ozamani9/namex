@@ -214,7 +214,8 @@ def correct_expiration_date(ora_expiration_dt):
 
     return expiry_date_pst_with_adjusted_time
 
-def get_nr_header(session, nr_num):   
+def get_nr_header(session, nr_num):  
+    current_app.logger.debug('******** GETTING NR HEADER  **********') 
     current_app.logger.debug(nr_num)
     # get the NR Header
     #############################
