@@ -267,7 +267,7 @@ class CreateNameRequestPayment(AbstractNameRequestResource):
                 NameRequestActions.REAPPLY.value,
                 NameRequestActions.RESUBMIT.value
             ]
-
+            #steven chen wants us to change this somehow omzamani
             if not valid_payment_action:
                 return jsonify(message='Invalid payment action [{action}]'.format(action=payment_action)), 400
 
@@ -283,7 +283,11 @@ class CreateNameRequestPayment(AbstractNameRequestResource):
                     # Save the record to NRO, which swaps the NR-L Number for a real NR
                     update_solr = True
                     nr_model = self.add_records_to_network_services(nr_model, update_solr)
-
+            
+            payment_record = PaymentDAO.find_by_existing_nr_id(nr_id)
+            if payment_record._payment_status_code == 'COMPLETED' or payment_record._payment_completion_date is not None :
+                return jsonify(message='Name Request {nr_id} payment has already been payed for'.format(nr_id=nr_id)), 200
+            
             json_input = request.get_json()
             payment_request = {}
             if not json_input:
@@ -458,7 +462,6 @@ class CreateNameRequestPayment(AbstractNameRequestResource):
             return handle_exception(err, err.message, 500)
         except Exception as err:
             return handle_exception(err, err, 500)
-
 
 @cors_preflight('DELETE, GET, PUT')
 @payment_api.route('/<int:nr_id>/payment/<string:payment_id>', strict_slashes=False, methods=['DELETE', 'GET', 'PUT', 'OPTIONS'])

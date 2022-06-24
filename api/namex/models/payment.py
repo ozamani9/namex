@@ -1,7 +1,8 @@
 """Payments for a Request."""
 from enum import Enum
+from pickle import NONE
 
-from sqlalchemy import event
+from sqlalchemy import event, true
 from flask import current_app
 from sqlalchemy.orm.attributes import get_history
 
@@ -65,7 +66,11 @@ class Payment(db.Model):
     def find_by_payment_token(cls, token: str):
         return cls.query.filter_by(_payment_token=str(token)).one_or_none()
 
-
+    @classmethod
+    def find_by_existing_nr_id(cls, nr_id):
+        #put stevens logic in here
+        return cls.query.filter_by(nrId=nr_id).one_or_none()
+        
     def as_dict(self):
         return {
             'id': self.id,
