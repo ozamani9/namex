@@ -1,8 +1,7 @@
 """Payments for a Request."""
 from enum import Enum
-from pickle import NONE
 
-from sqlalchemy import event, true
+from sqlalchemy import event
 from flask import current_app
 from sqlalchemy.orm.attributes import get_history
 

@@ -267,7 +267,7 @@ class CreateNameRequestPayment(AbstractNameRequestResource):
                 NameRequestActions.REAPPLY.value,
                 NameRequestActions.RESUBMIT.value
             ]
-            #steven chen wants us to change this somehow omzamani
+
             if not valid_payment_action:
                 return jsonify(message='Invalid payment action [{action}]'.format(action=payment_action)), 400
 
@@ -286,6 +286,7 @@ class CreateNameRequestPayment(AbstractNameRequestResource):
             
             payment_record = PaymentDAO.find_by_existing_nr_id(nr_id)
             if payment_record._payment_status_code == 'COMPLETED' or payment_record._payment_completion_date is not None :
+                ### Patrick i am not sure we can return message here (in case we need to pass ACTUAL JSON BACK FOR PARSING (THIS WILL NEED A TEST))
                 return jsonify(message='Name Request {nr_id} payment has already been payed for'.format(nr_id=nr_id)), 200
             
             json_input = request.get_json()
