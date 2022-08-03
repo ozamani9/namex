@@ -178,6 +178,13 @@ async def test_should_add_possible_conflicts_to_solr(
             'CONSUMED', 'APPROVED',
             ['TEST NAME 1', 'TEST NAME 2', 'TEST NAME 3'],
             ['APPROVED', 'CONDITION', 'REJECTED']
+        ),
+        (
+            'request',
+            create_request_state_change_message('EXPIRED', 'APPROVED'),
+            'EXPIRED', 'APPROVED',
+            ['TEST NAME 1', 'TEST NAME 2', 'TEST NAME 3'],
+            ['APPROVED', 'CONDITION', 'REJECTED']
         )
     ]
 )
