@@ -1,6 +1,7 @@
 from datetime import datetime
 from pytz import timezone
 
+from flask import current_app
 from namex.utils.logging import setup_logging
 
 from namex.constants import NameState, RequestAction, ExpiryDays
@@ -144,10 +145,17 @@ class NameRequestService(AbstractNameRequestMixin):
         """
         returns expiry days of an NR.
         """
+        current_app.logger.debug('****** get_expiry_days ******')
+        current_app.logger.debug('Request Action:{}'.format(name_request.request_action_cd))
+        current_app.logger.debug('Request Type Code:{}'.format(name_request.requestTypeCd))
+        current_app.logger.debug('Request Action and Request Type Code for name_request:{}'.format(name_request))
+        current_app.logger.debug('****** get_expiry_days ******')
         if name_request.request_action_cd in [RequestAction.REH.value, RequestAction.REN.value, RequestAction.REST.value]:
+            current_app.logger.debug('****** REQUEST ACTION IS EITHER REH, REN, REST ******')
             expires_days = ExpiryDays.NAME_REQUEST_REH_REN_LIFESPAN_DAYS.value
         else:
-            if name_request.requestTypeCd in ['RCR', 'RUL', 'BERE', 'RCC', 'RCP', 'RFI', 'XRCR', 'RLC', 'XRCP','RSO','XRSO']:
+            if name_request.requestTypeCd in ['RCR', 'RUL', 'BERE', 'RCC', 'RCP', 'RFI', 'XRCR', 'RLC', 'XRCP', 'RSO', 'XRSO']:
+                current_app.logger.debug('****** REQUEST TYPE CD IS EITHER RSO, XRSO ******')
                 expires_days = ExpiryDays.NAME_REQUEST_REH_REN_LIFESPAN_DAYS.value
             else:
                 expires_days = ExpiryDays.NAME_REQUEST_LIFESPAN_DAYS.value
