@@ -13,4 +13,4 @@ python-dotenv==0.17.1
 pytz==2021.1
 git+https://github.com/ozamani9/namex.git@12709_restoration_1_56_societies#egg=namex&subdirectory=api
 git+https://github.com/bcgov/namex-synonyms-api-py-client.git#egg=swagger_client
-git+https://github.com/bcgov/namex.git@12709_restoration_1_56_societies#egg=queue_common&subdirectory=services/common
+git+https://github.com/ozamani9/namex.git@12709_restoration_1_56_societies#egg=queue_common&subdirectory=services/common
